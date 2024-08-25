@@ -1,33 +1,41 @@
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
 import base64
-
-def encrypt_text(text, key):
-    """Mengenkripsi teks menggunakan XOR dengan kunci dan mengembalikan hasil dalam format base64."""
-    encrypted_chars = [chr(ord(c) ^ key) for c in text]
-    encrypted_text = ''.join(encrypted_chars)
-    return base64.b64encode(encrypted_text.encode()).decode()
-
-def convert_to_hex(data):
-    """Mengonversi data base64 ke format hex string."""
-    return ''.join(f"\\x{b:02x}" for b in base64.b64decode(data))
+import os
 
 def encrypt_file(file_path, key):
-    """Mengenkripsi file dengan XOR dan mengembalikan hasil dalam format hex."""
+    """Mengenkripsi file menggunakan AES dan mengonversi hasilnya ke format base64."""
+    cipher = AES.new(key, AES.MODE_CBC)
     with open(file_path, 'rb') as file:
         file_data = file.read()
-    encrypted_base64 = encrypt_text(file_data.decode(errors='ignore'), key)
-    return convert_to_hex(encrypted_base64)
+    encrypted_data = cipher.encrypt(pad(file_data, AES.block_size))
+    # Gabungkan IV dan data terenkripsi, lalu encode ke base64
+    return base64.b64encode(cipher.iv + encrypted_data).decode()
+
+def decrypt_file(encrypted_file_path, key, output_file_path):
+    """Mendekripsi file yang terenkripsi dan menyimpan hasilnya ke file baru."""
+    with open(encrypted_file_path, 'r') as file:
+        encrypted_data = base64.b64decode(file.read())
+    iv = encrypted_data[:AES.block_size]
+    encrypted_data = encrypted_data[AES.block_size:]
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    decrypted_data = unpad(cipher.decrypt(encrypted_data), AES.block_size)
+    with open(output_file_path, 'wb') as file:
+        file.write(decrypted_data)
 
 if __name__ == "__main__":
     # Meminta input dari pengguna
     file_path = input("Masukkan path file yang ingin dienkripsi (misalnya /sdcard/filename.txt): ")
-    key = int(input("Masukkan kunci (integer): "))
+    encrypted_file_path = input("Masukkan path untuk menyimpan file terenkripsi (misalnya /sdcard/encrypted_filename.txt): ")
+    decrypted_file_path = input("Masukkan path untuk menyimpan file yang didekripsi (misalnya /sdcard/decrypted_filename.txt): ")
+    key = os.urandom(16)  # Anda dapat menggunakan kunci tetap jika diinginkan
 
     # Mengenkripsi file
-    encrypted_hex = encrypt_file(file_path, key)
-    
-    # Mencetak hasil enkripsi dalam format yang diinginkan
-    print("\nFile terenkripsi:")
-    print(f'contoh = ""')
-    for i in range(0, len(encrypted_hex), 50):
-        print(f'contoh += "{encrypted_hex[i:i+50]}"')
-    print('exec(__import__("\\x62\\x61\\x73\\x65\\x36\\x34").b64decode(contoh.encode()))')
+    encrypted = encrypt_file(file_path, key)
+    with open(encrypted_file_path, 'w') as file:
+        file.write(encrypted)
+    print(f"File terenkripsi disimpan di: {encrypted_file_path}")
+
+    # Mendekripsi file
+    decrypt_file(encrypted_file_path, key, decrypted_file_path)
+    print(f"File didekripsi disimpan di: {decrypted_file_path}")
