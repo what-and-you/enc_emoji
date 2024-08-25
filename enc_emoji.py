@@ -1,33 +1,47 @@
-# Kamus untuk enkripsi menggunakan emoji (menggunakan 16 emoji untuk mapping hex)
-emoji_map = {
-    '0': '😀', '1': '😁', '2': '😂', '3': '🤣', '4': '😃', '5': '😄', '6': '😅', '7': '😆',
-    '8': '😉', '9': '😊', 'a': '😋', 'b': '😎', 'c': '😍', 'd': '😘', 'e': '😗', 'f': '😙'
-}
+from cryptography.fernet import Fernet
 
-# Fungsi untuk mengenkripsi teks menjadi emoji menggunakan encoding hexadecimal
-def encrypt_to_emoji(text):
-    encoded_text = text.encode('utf-8').hex()
-    encrypted_text = ''.join([emoji_map[char] for char in encoded_text])
-    return encrypted_text
+# Fungsi untuk menghasilkan kunci enkripsi
+def generate_key():
+    return Fernet.generate_key()
 
-# Fungsi untuk mendekripsi emoji kembali ke teks asli
-def decrypt_from_emoji(emoji_text):
-    reverse_emoji_map = {v: k for k, v in emoji_map.items()}
-    decoded_text = ''.join([reverse_emoji_map[char] for char in emoji_text])
-    decrypted_text = bytes.fromhex(decoded_text).decode('utf-8')
-    return decrypted_text
+# Fungsi untuk menyimpan kunci enkripsi ke file
+def save_key(key, filename):
+    with open(filename, "wb") as key_file:
+        key_file.write(key)
 
-# Contoh Penggunaan
+# Fungsi untuk memuat kunci enkripsi dari file
+def load_key(filename):
+    with open(filename, "rb") as key_file:
+        return key_file.read()
+
+# Fungsi untuk mengenkripsi pesan
+def encrypt_message(message, key):
+    f = Fernet(key)
+    encrypted_message = f.encrypt(message.encode())
+    return encrypted_message
+
+# Fungsi untuk mendekripsi pesan
+def decrypt_message(encrypted_message, key):
+    f = Fernet(key)
+    decrypted_message = f.decrypt(encrypted_message)
+    return decrypted_message.decode()
+
 if __name__ == "__main__":
-    original_script = '''
-print("Hello, World!")
-print("This is an encrypted script.")
-'''
+    # Meminta nama file untuk menyimpan kunci
+    key_filename = input("Masukkan nama file untuk menyimpan kunci enkripsi (misalnya 'mykey.key'): ")
+    
+    # Menghasilkan dan menyimpan kunci enkripsi
+    key = generate_key()
+    save_key(key, key_filename)
+    print(f"Kunci enkripsi disimpan dalam file: {key_filename}")
+    
+    # Meminta pesan yang akan dienkripsi
+    message = input("Masukkan pesan yang ingin dienkripsi: ")
+    
+    # Mengenkripsi pesan
+    encrypted_message = encrypt_message(message, key)
+    print(f"Pesan terenkripsi: {encrypted_message.decode()}")
 
-    # Enkripsi script menggunakan emoji
-    encrypted_script = encrypt_to_emoji(original_script)
-    print(f"Encrypted Script: {encrypted_script}")
-
-    # Dekripsi kembali untuk verifikasi
-    decrypted_script = decrypt_from_emoji(encrypted_script)
-    print(f"\nDecrypted Script:\n{decrypted_script}")
+    # Mendekripsi pesan untuk verifikasi
+    decrypted_message = decrypt_message(encrypted_message, key)
+    print(f"Pesan setelah didekripsi: {decrypted_message}")
