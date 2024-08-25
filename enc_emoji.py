@@ -1,28 +1,20 @@
-import base64
-
-# Kamus untuk enkripsi menggunakan emoji
+# Kamus untuk enkripsi menggunakan emoji (menggunakan 16 emoji untuk mapping hex)
 emoji_map = {
-    'a': '😀', 'b': '😁', 'c': '😂', 'd': '🤣', 'e': '😃', 'f': '😄', 'g': '😅', 'h': '😆', 'i': '😉', 'j': '😊',
-    'k': '😋', 'l': '😎', 'm': '😍', 'n': '😘', 'o': '😗', 'p': '😙', 'q': '😚', 'r': '☺️', 's': '🙂', 't': '🤗',
-    'u': '🤩', 'v': '🤔', 'w': '🤨', 'x': '😐', 'y': '😑', 'z': '😶',
-    'A': '😏', 'B': '😣', 'C': '😥', 'D': '😮', 'E': '🤐', 'F': '😯', 'G': '😪', 'H': '😫', 'I': '😴', 'J': '😌',
-    'K': '😛', 'L': '😜', 'M': '😝', 'N': '🤤', 'O': '😒', 'P': '😓', 'Q': '😔', 'R': '😕', 'S': '🙃', 'T': '🤑',
-    'U': '😲', 'V': '☹️', 'W': '🙁', 'X': '😖', 'Y': '😞', 'Z': '😟',
-    '0': '😤', '1': '😢', '2': '😭', '3': '😦', '4': '😧', '5': '😨', '6': '😩', '7': '🤯', '8': '😬', '9': '😰',
-    '+': '😱', '/': '😳', '=': '🤪', '\n': '😵'
+    '0': '😀', '1': '😁', '2': '😂', '3': '🤣', '4': '😃', '5': '😄', '6': '😅', '7': '😆',
+    '8': '😉', '9': '😊', 'a': '😋', 'b': '😎', 'c': '😍', 'd': '😘', 'e': '😗', 'f': '😙'
 }
 
-# Fungsi untuk mengenkripsi teks menjadi emoji
+# Fungsi untuk mengenkripsi teks menjadi emoji menggunakan encoding hexadecimal
 def encrypt_to_emoji(text):
-    encoded_text = base64.b64encode(text.encode('utf-8')).decode('utf-8')
+    encoded_text = text.encode('utf-8').hex()
     encrypted_text = ''.join([emoji_map[char] for char in encoded_text])
     return encrypted_text
 
-# Fungsi untuk mendekripsi emoji kembali ke teks
+# Fungsi untuk mendekripsi emoji kembali ke teks asli
 def decrypt_from_emoji(emoji_text):
     reverse_emoji_map = {v: k for k, v in emoji_map.items()}
     decoded_text = ''.join([reverse_emoji_map[char] for char in emoji_text])
-    decrypted_text = base64.b64decode(decoded_text).decode('utf-8')
+    decrypted_text = bytes.fromhex(decoded_text).decode('utf-8')
     return decrypted_text
 
 # Contoh Penggunaan
